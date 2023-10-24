@@ -42,11 +42,11 @@ public:
 			{
 				customer *temp = first;
 				first = first->next;
-				delete temp;
+				temp = nullptr;
 				n--;
 				filled--;
 			}
-			last = first;
+
 			if (first == NULL)
 			{
 				last = NULL;
@@ -113,7 +113,7 @@ public:
 			while (count > 0)
 			{
 				// Assuming you have a toString() method in the 'customer' class to display customer information
-				cout << "Queue printing: " << current->name << endl;
+				cout << "Queue printing: " << current->name << " " << current->energy << endl;
 				current = current->next;
 				count--;
 			}
@@ -218,6 +218,7 @@ public:
 		{
 			customer *customerDelete = customerOrder->getCustomerFromQueue(count);
 			findAndDeleteCustomer(customerDelete->name);
+			customerOrder->removeCustomer(count);
 			count++;
 		}
 	}
@@ -239,8 +240,14 @@ public:
 	}
 	void LIGHT(int num)
 	{
+		customerOrder->printQueue();
+		if (occupied == 0)
+		{
+			return;
+		}
 		if (num > 0)
 		{
+
 			customer *temp = head;
 			int count = occupied;
 			while (count > 0)
@@ -399,7 +406,6 @@ public:
 			head = nextTemp;
 		}
 		occupied--;
-		free(tmp);
 		return;
 	}
 
