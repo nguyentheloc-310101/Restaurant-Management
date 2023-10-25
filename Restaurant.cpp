@@ -36,13 +36,117 @@ public:
 		{
 			filled--;
 		}
-		void removeCustomer(int n)
+		void printList(customer *node)
+		{
+			while (node != nullptr)
+			{
+				cout << node->name << " " << node->energy << endl;
+				node = node->next;
+			}
+		}
+		customer *getFirst()
+		{
+			return first;
+		}
+		int customRound(double num)
+		{
+			if (num < 0)
+			{
+				return static_cast<int>(num - 0.5);
+			}
+			else
+			{
+				return static_cast<int>(num + 0.5);
+			}
+		}
+		int nextGap(double gap)
+		{
+			if (gap < 2)
+				return 0;
+			return (int)customRound(gap / 2);
+		}
+		customer *shellSortQueue(customer *head)
+		{
+
+			if (head == nullptr || head->next == nullptr)
+				return head;
+
+			int k = customRound(filled);
+			int count = 0;
+			for (int gap = k; gap > 0; gap = nextGap(gap))
+			{
+				customer *i = head, *j = head;
+				int count = gap;
+
+				// move j pointer k nodes ahead
+				while (count-- > 0)
+					j = j->next;
+
+				// i and j pointers compare and swap
+				for (; j != nullptr; i = i->next, j = j->next)
+				{
+					if (i->energy > j->energy)
+					{
+						// if i is head, then replace head with j
+						if (i == head)
+							head = j;
+
+						// swap i & j pointers
+						customer *iTemp = i;
+						i = j;
+						j = iTemp;
+
+						// i & j pointers are swapped because
+						// below code only swaps nodes by
+						// swapping their associated
+						// pointers(i.e. prev & next pointers)
+
+						// Now, swap both the
+						// nodes in linked list
+						customer *iPrev = i->prev, *iNext = i->next;
+						if (iPrev != nullptr)
+							iPrev->next = j;
+						if (iNext != nullptr)
+							iNext->prev = j;
+						i->prev = j->prev;
+						i->next = j->next;
+						if (j->prev != nullptr)
+							j->prev->next = i;
+						if (j->next != nullptr)
+							j->next->prev = i;
+						j->prev = iPrev;
+						j->next = iNext;
+					}
+				}
+			}
+			first = head;
+			return head;
+		}
+
+		bool checkFilled(int size)
+		{
+			customer *tmp = first;
+			int count = 0;
+			while (tmp != NULL)
+			{
+				count++;
+				tmp = tmp->next;
+			}
+			if (size = count)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		void removeCustomerInOrder(int n)
 		{
 			while (n > 0)
 			{
 				customer *temp = first;
 				first = first->next;
-				temp = nullptr;
 				n--;
 				filled--;
 			}
@@ -81,36 +185,55 @@ public:
 		}
 		void getCustomerInQueue();
 		void checkSizeQueue();
+
 		void searchCustomerInQueue(string);
-		void addCustomerQueue(customer *Customer)
+		void addCustomerInOrder(string name, int energy)
 		{
 			if (filled < queueSize)
 			{
-				if (filled < queueSize)
+				if (first == nullptr)
 				{
-					if (first == nullptr)
-					{
-						Customer->next = nullptr;
-						first = Customer;
-						last = Customer;
-					}
-					else
-					{
-						last->next = Customer;
-						last = Customer;
-						last->next = nullptr;
-						Customer->next = nullptr;
-					}
-					increaseFilled();
+					customer *newNode = new customer(name, energy, nullptr, nullptr);
+					first = newNode;
+					last = newNode;
 				}
+				else
+				{
+					customer *newNode = new customer(name, energy, last, nullptr);
+					last->next = newNode; // next address of ending node is linking with new node
+					last = newNode;
+				}
+			}
+		}
+		void addCustomerQueue(customer *Customer)
+		{
+
+			if (filled < queueSize)
+			{
+				if (first == nullptr)
+				{
+					Customer->next = nullptr;
+					Customer->prev = nullptr;
+					first = Customer;
+					last = Customer;
+				}
+				else
+				{
+					Customer->next = NULL; // set next address field of new node  is NULL
+					Customer->prev = last; // previous address of new node is linking with ending node
+					last->next = Customer; // next address of ending node is linking with new node
+					last = Customer;
+				}
+
+				increaseFilled();
 			}
 		}
 		void printQueue()
 		{
 			customer *current = first;
 			int count = filled;
-			cout << "Queue printing - filled: " << filled << endl;
-			while (count > 0)
+			cout << "Customer inQueue: " << filled << endl;
+			while (current != NULL)
 			{
 				// Assuming you have a toString() method in the 'customer' class to display customer information
 				cout << "Queue printing: " << current->name << " " << current->energy << endl;
@@ -144,7 +267,7 @@ public:
 	{
 		// cout << name << " " << energy << endl;
 		customerQueue->updateSize(MAXSIZE);
-		customerOrder->updateSize(MAXSIZE);
+		customerOrder->updateSize(10000);
 
 		if (energy != 0)
 		{
@@ -152,7 +275,7 @@ public:
 			if (isNameExist(name) == false)
 			{
 				customer *newCustomer = new customer(name, energy, nullptr, nullptr);
-				customerOrder->addCustomerQueue(newCustomer);
+				customerOrder->addCustomerInOrder(name, energy);
 				if (head == nullptr || occupied == 0)
 				{
 					head = newCustomer;
@@ -187,9 +310,17 @@ public:
 				}
 				else if (occupied == MAXSIZE)
 				{
+					cout << "occupied size: " << occupied << " max size: " << MAXSIZE << " filled: " << customerQueue->getFilled() << "\n"
+						 << endl;
 					if (customerQueue->getFilled() == MAXSIZE)
+					{
+						cout << "............." << endl;
 						return;
-					customerQueue->addCustomerQueue(newCustomer);
+					}
+					else
+					{
+						customerQueue->addCustomerQueue(newCustomer);
+					}
 				}
 			}
 			else
@@ -201,12 +332,11 @@ public:
 		{
 			return;
 		}
-		// CustomerOrder->printQueue();
 	}
 	void BLUE(int num)
 	{
-		cout << "occupied: " << occupied << " "
-			 << "num:" << num << endl;
+		// cout << "occupied: " << occupied << " "
+		// 	 << "num:" << num << endl;
 		if (num >= occupied || num >= MAXSIZE)
 		{
 			deleteAllCustomer();
@@ -218,12 +348,27 @@ public:
 		{
 			customer *customerDelete = customerOrder->getCustomerFromQueue(count);
 			findAndDeleteCustomer(customerDelete->name);
-			customerOrder->removeCustomer(count);
+			customerOrder->removeCustomerInOrder(count);
 			count++;
 		}
 	}
 	void PURPLE()
 	{
+
+		int countSwap = 0;
+		// customerQueue->sortAKSortedDLL(MAXSIZE, countSwap);
+		// customerQueue->printQueue();
+		// cout << "count swapped: " << countSwap << endl;
+		customer *head = customerQueue->getFirst();
+		// int filled = customerQueue->getFilled();
+		cout << "before sort: " << endl;
+		customerQueue->printQueue();
+
+		customer *srt = customerQueue->shellSortQueue(head);
+		cout << endl;
+		cout << "after sort: " << endl;
+		customerQueue->printQueue();
+
 		// cout << "purple" << endl;
 	}
 	void REVERSAL()
@@ -240,7 +385,11 @@ public:
 	}
 	void LIGHT(int num)
 	{
-		customerOrder->printQueue();
+		// customerQueue->printQueue();
+		cout << "\n"
+			 << "-----------------------all customer at restaurant ---------------------"
+			 << "\n"
+			 << endl;
 		if (occupied == 0)
 		{
 			return;
@@ -407,14 +556,5 @@ public:
 		}
 		occupied--;
 		return;
-	}
-
-	void checkHead()
-	{
-		// cout << "head customer here: " << head->name << " " << head->energy << endl;
-		// cout << "head customer next here: " << head->next->name << " " << head->next->energy << endl;
-		// cout << "head customer next->next here: " << head->next->next->name << " " << head->next->next->energy << endl;
-		// cout << "head customer next->next->next->head here: " << head->next->next->next->name << " " << head->next->next->next->energy << endl;
-		customer *tmp = head->next;
 	}
 };
