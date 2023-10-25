@@ -19,6 +19,13 @@ public:
 			queueSize = 0;
 			filled = 0;
 		}
+		Queue(int maxsize)
+		{
+			first = NULL;
+			last = NULL;
+			queueSize = maxsize;
+			filled = 0;
+		}
 		void updateSize(int size)
 		{
 			this->queueSize = size;
@@ -59,28 +66,66 @@ public:
 				return static_cast<int>(num + 0.5);
 			}
 		}
-		void findMaxFromLast()
+		Queue *sortQueue(int maxsize)
 		{
 			customer *travel = first;
-			customer *output = nullptr;
+			customer *positionOfMax = first;
+			Queue *queueBeforeMax = new Queue(maxsize);
+			Queue *queueAfterMax = new Queue(maxsize);
 
-			int countStop = filled;
+			Queue *output = new Queue(maxsize);
+
+			int countStop = 0;
 			int max = abs(travel->energy);
 			// cout << "filled: " << filled << endl;
+			int flag = 0;
 
-			while (countStop > 0)
+			// get the max position
+			while (countStop != filled)
 			{
-				cout << "countStop: " << countStop << endl;
 				int tmp = abs(travel->energy);
 				if (tmp >= max)
 				{
-					cout << "max: " << max << endl;
 					max = abs(travel->energy);
-					first = travel;
+					positionOfMax = travel;
 				}
 				travel = travel->next;
-				countStop--;
+				countStop++;
 			}
+
+			customer *tmp = positionOfMax;
+			customer *tmpAfter = positionOfMax->next;
+
+			while (tmp != NULL)
+			{
+				queueBeforeMax->addCustomerInOrder(tmp->name, tmp->energy);
+				tmp = tmp->prev;
+			}
+			while (tmpAfter != NULL)
+			{
+				queueAfterMax->addCustomerInOrder(tmpAfter->name, tmpAfter->energy);
+				tmpAfter = tmpAfter->next;
+			}
+
+			delete tmp;
+			delete tmpAfter;
+			delete travel;
+			delete positionOfMax;
+
+			customer *travelAddFront = queueBeforeMax->getFirst();
+			customer *travelAddAfter = queueAfterMax->getFirst();
+			while (travelAddFront != NULL)
+			{
+				output->addCustomerInOrder(travelAddFront->name, travelAddFront->energy);
+				travelAddFront = travelAddFront->next;
+			}
+			while (travelAddAfter != NULL)
+			{
+				output->addCustomerInOrder(travelAddAfter->name, travelAddAfter->energy);
+				travelAddAfter = travelAddAfter->next;
+			}
+
+			return output;
 		}
 		int nextGap(double gap)
 		{
@@ -198,20 +243,19 @@ public:
 		void searchCustomerInQueue(string);
 		void addCustomerInOrder(string name, int energy)
 		{
-			if (filled < queueSize)
+			if (filled == queueSize)
+				return;
+			if (first == nullptr)
 			{
-				if (first == nullptr)
-				{
-					customer *newNode = new customer(name, energy, nullptr, nullptr);
-					first = newNode;
-					last = newNode;
-				}
-				else
-				{
-					customer *newNode = new customer(name, energy, last, nullptr);
-					last->next = newNode; // next address of ending node is linking with new node
-					last = newNode;
-				}
+				customer *newNode = new customer(name, energy, nullptr, nullptr);
+				first = newNode;
+				last = newNode;
+			}
+			else
+			{
+				customer *newNode = new customer(name, energy, last, nullptr);
+				last->next = newNode; // next address of ending node is linking with new node
+				last = newNode;
 			}
 			increaseFilled();
 		}
@@ -419,16 +463,18 @@ public:
 	void PURPLE()
 	{
 		int countSwap = 0;
-		customerQueue->findMaxFromLast();
-		customer *head = customerQueue->getFirst();
-
-		cout << "before sort: " << endl;
+		// customerQueue->findMaxFromLast();
+		Queue *newQ = customerQueue->sortQueue(MAXSIZE);
+		customerQueue = newQ;
 		customerQueue->printQueue();
 
-		customer *srt = customerQueue->shellSortQueue(head, countSwap);
-		cout << endl;
-		cout << "after sort: " << countSwap << endl;
-		customerQueue->printQueue();
+		// cout << "before sort: " << endl;
+		// customerQueue->printQueue();
+
+		// customer *srt = customerQueue->shellSortQueue(head, countSwap);
+		// cout << endl;
+		// cout << "after sort: " << countSwap << endl;
+		// customerQueue->printQueue();
 
 		// cout << "purple" << endl;
 	}
