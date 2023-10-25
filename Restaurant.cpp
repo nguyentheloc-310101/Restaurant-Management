@@ -174,8 +174,8 @@ public:
 		}
 		customer *getCustomerFromQueue(int n)
 		{
-
-			// customer *currentDelete = first;
+			if (n > filled)
+				return NULL;
 			customer *returnCurrent = first;
 			int count = 0;
 			while (count != n)
@@ -402,13 +402,16 @@ public:
 		count = 0;
 
 		cout << "check next currentChange: " << currentChange->name << endl;
-		while (count != num)
+		if (customerQueue->getFilled() <= num)
 		{
-			customer *takeCustomerInQueue = customerQueue->getCustomerFromQueue(count);
-			RED(takeCustomerInQueue->name, takeCustomerInQueue->energy);
-			count++;
+			while (count != num)
+			{
+				customer *takeCustomerInQueue = customerQueue->getCustomerFromQueue(count);
+				RED(takeCustomerInQueue->name, takeCustomerInQueue->energy);
+				count++;
+			}
+			customerQueue->removeCustomerInOrder(num);
 		}
-
 		customerOrder->removeCustomerInOrder(num);
 		cout << "\n";
 		customerQueue->printQueue();
