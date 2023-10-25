@@ -47,7 +47,6 @@ public:
 		{
 			while (node != nullptr)
 			{
-				cout << node->name << " " << node->energy << endl;
 				node = node->next;
 			}
 		}
@@ -111,10 +110,10 @@ public:
 				tmpAfter = tmpAfter->next;
 			}
 
-			delete tmp;
-			delete tmpAfter;
-			delete travel;
-			delete positionOfMax;
+			// delete tmp;
+			// delete tmpAfter;
+			// delete travel;
+			// delete positionOfMax;
 
 			customer *travelAddFront = queueBeforeMax->getFirst();
 			customer *travelAddAfter = queueAfterMax->getFirst();
@@ -217,16 +216,17 @@ public:
 		}
 		void deleteQueue()
 		{
-			customer *temp = first;
-			int count = filled;
-			while (count != 0)
+			if (first == nullptr)
 			{
-				customer *tmpForDelete = temp;
-				temp = temp->next;
-				delete tmpForDelete;
+				return; // List is empty
 			}
-			last = NULL;
-			first = NULL;
+
+			while (first != nullptr)
+			{
+				customer *temp = first;
+				first = first->next;
+				delete temp;
+			}
 			filled = 0;
 		}
 		customer *getCustomerFromQueue(int n)
@@ -310,14 +310,17 @@ public:
 		{
 			customer *current = first;
 			int count = filled;
-			cout << "Customer inQueue: " << filled << endl;
+			if (filled == 0)
+			{
+				// cout << "-------------------------------------------------empty-------------------------------------------------" << endl;
+				return;
+			}
 			while (current != NULL)
 			{
-				cout << "Queue printing: " << current->name << " " << current->energy << endl;
+				current->print();
 				current = current->next;
 				count--;
 			}
-			return;
 		}
 	};
 
@@ -341,7 +344,6 @@ public:
 
 	void RED(string name, int energy)
 	{
-		// cout << name << " " << energy << endl;
 		customerQueue->updateSize(MAXSIZE);
 		customerOrder->updateSize(10000);
 
@@ -430,7 +432,7 @@ public:
 					else
 					{
 						customer *newCustomer = new customer(name, energy, nullptr, nullptr);
-						customerQueue->addCustomerQueue(newCustomer);
+						customerQueue->addCustomerInOrder(name, energy);
 					}
 				}
 			}
@@ -446,38 +448,45 @@ public:
 	}
 	void BLUE(int num)
 	{
-		// cout << "occupied: " << occupied << " "
-		// 	 << "num:" << num << endl;
-		// cout << "after sort at BLUE: " << endl;
-		// customerQueue->printQueue();
+		// cout << "----------------------------------BLUE--------------------------------"
+		// 	 << " " << num << " occupied: " << occupied << endl;
 		if (num >= occupied || num >= MAXSIZE)
 		{
-			deleteAllCustomer();
-			return;
+			int count = occupied;
+			while (count > 0)
+			{
+				customer *temp = head;
+				head = head->next;
+				delete temp;
+				count--;
+			}
+			customerQueue->deleteQueue();
+			customerOrder->deleteQueue();
+			occupied = 0;
 		}
-		int count = 0;
-		while (count != num)
+		else
 		{
-			customer *customerDelete = customerOrder->getCustomerFromQueue(count);
-			findAndDeleteCustomer(customerDelete->name);
-			count++;
-		}
-		count = 0;
-
-		if (customerQueue->getFilled() != 0)
-		{
+			int count = 0;
 			while (count != num)
 			{
-				customer *takeCustomerInQueue = customerQueue->getCustomerFromQueue(count);
-				RED(takeCustomerInQueue->name, takeCustomerInQueue->energy);
+				customer *customerDelete = customerOrder->getCustomerFromQueue(count);
+				findAndDeleteCustomer(customerDelete->name);
 				count++;
 			}
-			customerQueue->removeCustomerInOrder(num);
-			customerOrder->removeCustomerInOrder(num);
+			count = 0;
+
+			if (customerQueue->getFilled() != 0)
+			{
+				while (count != num)
+				{
+					customer *takeCustomerInQueue = customerQueue->getCustomerFromQueue(count);
+					RED(takeCustomerInQueue->name, takeCustomerInQueue->energy);
+					count++;
+				}
+				customerQueue->removeCustomerInOrder(num);
+				customerOrder->removeCustomerInOrder(num);
+			}
 		}
-		// cout << "\n";
-		// customerOrder->printQueue();
-		// cout << "\n";
 	}
 	void PURPLE()
 	{
@@ -485,28 +494,20 @@ public:
 		// customerQueue->findMaxFromLast();
 		Queue *newQ = customerQueue->sortQueue(MAXSIZE);
 		customerQueue = newQ;
-		customerQueue->printQueue();
-
-		// cout << "before sort: " << endl;
-		// customerQueue->printQueue();
-
-		// customer *srt = customerQueue->shellSortQueue(head, countSwap);
-		// cout << endl;
-		// cout << "after sort: " << countSwap << endl;
-		// customerQueue->printQueue();
-
-		// cout << "purple" << endl;
 	}
 	void REVERSAL()
 	{
-		// customerQueue->printQueue();
-		// cout << endl;
+		if (customerQueue->getFilled() == 0)
+		{
+			cout << "empty queue" << endl;
+			return;
+		}
 		Queue *negativeQueue = new Queue();
 		Queue *positiveQueue = new Queue();
 		string currNameUnique = currentChange->name;
-
 		customer *firstCustomer = head;
 		int count = 0;
+
 		while (count != occupied)
 		{
 
@@ -521,6 +522,15 @@ public:
 			firstCustomer = firstCustomer->next;
 			count++;
 		}
+		cout << "\n";
+		cout << "NEGATIVE not reverse" << endl;
+		positiveQueue->printQueue();
+		cout << "\n";
+
+		cout << "\n";
+		cout << "POSITIVE not reverse" << endl;
+		negativeQueue->printQueue();
+		cout << "\n";
 
 		negativeQueue->reverse();
 		positiveQueue->reverse();
@@ -572,11 +582,7 @@ public:
 
 	void LIGHT(int num)
 	{
-		cout << "\n"
-			 << "-----------------------all customer at restaurant ---------------------"
-			 << "\n"
-			 << endl;
-		cout << "CurrentChange->name: " << currentChange->name << endl;
+		cout << "LIGHT " << num << endl;
 		if (occupied == 0)
 		{
 			return;
@@ -593,9 +599,13 @@ public:
 				count--;
 			}
 		}
+		else if (num == 0)
+		{
+			customerQueue->printQueue();
+		}
 		else if (num < 0)
 		{
-			customer *temp = head;
+			customer *temp = currentChange;
 			int count = occupied;
 			while (count > 0)
 			{
@@ -649,7 +659,6 @@ public:
 		customer *ptr = head->next;
 		while (ptr != head)
 		{
-			cout << "size of table occupied: " << count << endl;
 			count++;
 		}
 	}
@@ -699,34 +708,17 @@ public:
 
 		occupied++;
 	}
-	void deleteAllCustomer()
-	{
-		if (head == NULL)
-		{
-			return;
-		}
-		customer *temp, *current;
-		current = head->next;
-		while (current != head)
-		{
-			temp = current->next;
-			// free(current);
-			current = temp;
-		}
-		customerQueue->deleteQueue();
-		customerOrder->deleteQueue();
-
-		head = NULL;
-		currentChange = NULL;
-		occupied = 0;
-		return;
-	}
 
 	void findAndDeleteCustomer(string name)
 	{
 		customer *tmp = head;
-		while (tmp->name != name)
+		int count = 0;
+		while (count != occupied)
 		{
+			if (tmp->name == name)
+			{
+				return;
+			}
 			tmp = tmp->next;
 		}
 
@@ -748,7 +740,6 @@ public:
 			currentChange = prevTemp;
 		}
 
-		delete tmp;
 		occupied--;
 		return;
 	}
