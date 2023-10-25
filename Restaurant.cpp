@@ -65,7 +65,7 @@ public:
 				return 0;
 			return (int)customRound(gap / 2);
 		}
-		customer *shellSortQueue(customer *head)
+		customer *shellSortQueue(customer *head, int &swap)
 		{
 
 			if (head == nullptr || head->next == nullptr)
@@ -85,8 +85,10 @@ public:
 				// i and j pointers compare and swap
 				for (; j != nullptr; i = i->next, j = j->next)
 				{
-					if (i->energy > j->energy)
+
+					if (abs(i->energy) > abs(j->energy))
 					{
+						swap++;
 						// if i is head, then replace head with j
 						if (i == head)
 							head = j;
@@ -185,7 +187,6 @@ public:
 		}
 		void getCustomerInQueue();
 		void checkSizeQueue();
-
 		void searchCustomerInQueue(string);
 		void addCustomerInOrder(string name, int energy)
 		{
@@ -235,12 +236,10 @@ public:
 			cout << "Customer inQueue: " << filled << endl;
 			while (current != NULL)
 			{
-				// Assuming you have a toString() method in the 'customer' class to display customer information
 				cout << "Queue printing: " << current->name << " " << current->energy << endl;
 				current = current->next;
 				count--;
 			}
-			// cout << last->name << endl;
 			return;
 		}
 	};
@@ -274,26 +273,69 @@ public:
 
 			if (isNameExist(name) == false)
 			{
-				customer *newCustomer = new customer(name, energy, nullptr, nullptr);
+
 				customerOrder->addCustomerInOrder(name, energy);
 				if (head == nullptr || occupied == 0)
 				{
+					customer *newCustomer = new customer(name, energy, nullptr, nullptr);
 					head = newCustomer;
 					currentChange = newCustomer;
 					occupied++;
-					return;
 				}
 				else if (occupied < (MAXSIZE / 2))
 				{
-					if (currentChange->energy <= newCustomer->energy)
+					if (occupied == 2)
 					{
+						if (currentChange->energy >= head->energy)
+						{
+							if (currentChange->energy <= energy)
+							{
+								cout << "add right" << endl;
+								addRight(name, energy);
+							}
+							else if (currentChange->energy > energy)
 
-						addRight(name, energy);
+							{
+								cout << "add left" << endl;
+								addLeft(name, energy);
+							}
+						}
+						else
+						{
+							if (currentChange->energy <= energy)
+							{
+								cout << "add right" << endl;
+								customer *newCustomer = new customer(name, energy, currentChange, head);
+								currentChange->next = newCustomer;
+								head->prev = newCustomer;
+								currentChange = newCustomer;
+								occupied++;
+							}
+							else if (currentChange->energy > energy)
+							{
+								cout << "add left" << endl;
+								customer *newCustomer = new customer(name, energy, head, currentChange);
+								head->next = newCustomer;
+								currentChange->prev = newCustomer;
+
+								currentChange = newCustomer;
+								occupied++;
+							}
+						}
 					}
-					else if (currentChange->energy > newCustomer->energy)
-
+					else
 					{
-						addLeft(name, energy);
+						if (currentChange->energy <= energy)
+						{
+							cout << "add right" << endl;
+							addRight(name, energy);
+						}
+						else if (currentChange->energy > energy)
+
+						{
+							cout << "add left" << endl;
+							addLeft(name, energy);
+						}
 					}
 				}
 				else if ((occupied >= (MAXSIZE / 2)) && (occupied < MAXSIZE))
@@ -319,6 +361,7 @@ public:
 					}
 					else
 					{
+						customer *newCustomer = new customer(name, energy, nullptr, nullptr);
 						customerQueue->addCustomerQueue(newCustomer);
 					}
 				}
@@ -347,6 +390,10 @@ public:
 		while (count != num)
 		{
 			customer *customerDelete = customerOrder->getCustomerFromQueue(count);
+
+			cout << "delete customer " << customerDelete->name << endl;
+			// cout << "currentChange: " << currentChange->name << endl;
+
 			findAndDeleteCustomer(customerDelete->name);
 			customerOrder->removeCustomerInOrder(count);
 			count++;
@@ -356,17 +403,14 @@ public:
 	{
 
 		int countSwap = 0;
-		// customerQueue->sortAKSortedDLL(MAXSIZE, countSwap);
-		// customerQueue->printQueue();
-		// cout << "count swapped: " << countSwap << endl;
 		customer *head = customerQueue->getFirst();
-		// int filled = customerQueue->getFilled();
+
 		cout << "before sort: " << endl;
 		customerQueue->printQueue();
 
-		customer *srt = customerQueue->shellSortQueue(head);
+		customer *srt = customerQueue->shellSortQueue(head, countSwap);
 		cout << endl;
-		cout << "after sort: " << endl;
+		cout << "after sort: " << countSwap << endl;
 		customerQueue->printQueue();
 
 		// cout << "purple" << endl;
@@ -385,7 +429,6 @@ public:
 	}
 	void LIGHT(int num)
 	{
-		// customerQueue->printQueue();
 		cout << "\n"
 			 << "-----------------------all customer at restaurant ---------------------"
 			 << "\n"
@@ -396,10 +439,10 @@ public:
 		}
 		if (num > 0)
 		{
-
+			// if it doesn't back to head -> check this
 			customer *temp = head;
 			int count = occupied;
-			while (count > 0)
+			while (count != 0)
 			{
 				temp->print();
 				temp = temp->next;
@@ -469,19 +512,16 @@ public:
 	{
 		if (occupied == 1)
 		{
-			customer *newCustomer = new customer(name, energy, currentChange, currentChange);
-
-			currentChange->next = newCustomer;
-			currentChange->prev = newCustomer;
-
+			customer *newCustomer = new customer(name, energy, head, head);
+			head->next = newCustomer;
+			head->prev = newCustomer;
 			currentChange = newCustomer;
 		}
 		else
 		{
-			customer *tempCurrentNext = currentChange->next;
-			// customer *temp = curr->prev;
-			customer *newCustomer = new customer(name, energy, tempCurrentNext, currentChange);
-			tempCurrentNext->next = newCustomer;
+			customer *tempCurrentPrev = currentChange->prev;
+			customer *newCustomer = new customer(name, energy, tempCurrentPrev, currentChange);
+			tempCurrentPrev->next = newCustomer;
 			currentChange->prev = newCustomer;
 
 			currentChange = newCustomer;
@@ -540,11 +580,11 @@ public:
 	void findAndDeleteCustomer(string name)
 	{
 		customer *tmp = head;
-		int index = occupied;
 		while (tmp->name != name)
 		{
 			tmp = tmp->next;
 		}
+		cout << "check tmp->prev->name at delete: " << tmp->next->name << endl;
 		customer *prevTemp = tmp->prev;
 		customer *nextTemp = tmp->next;
 
@@ -554,6 +594,15 @@ public:
 		{
 			head = nextTemp;
 		}
+		// if (tmp->energy > 0)
+		// {
+		// 	currentChange = nextTemp;
+		// }
+		// else if (tmp->energy < 0)
+		// {
+		// 	currentChange = prevTemp;
+		// }
+		tmp = nullptr;
 		occupied--;
 		return;
 	}
