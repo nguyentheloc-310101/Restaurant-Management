@@ -55,6 +55,10 @@ public:
 		{
 			return first;
 		}
+		customer *getLast()
+		{
+			return last;
+		}
 		int customRound(double num)
 		{
 			if (num < 0)
@@ -241,10 +245,10 @@ public:
 		void getCustomerInQueue();
 		void checkSizeQueue();
 		void searchCustomerInQueue(string);
+
 		void addCustomerInOrder(string name, int energy)
 		{
-			if (filled == queueSize)
-				return;
+
 			if (first == nullptr)
 			{
 				customer *newNode = new customer(name, energy, nullptr, nullptr);
@@ -258,6 +262,26 @@ public:
 				last = newNode;
 			}
 			increaseFilled();
+		}
+		void reverse()
+		{
+			customer *temp = NULL;
+			customer *current = first;
+
+			/* swap next and prev for all nodes of
+			doubly linked list */
+			while (current != NULL)
+			{
+				temp = current->prev;
+				current->prev = current->next;
+				current->next = temp;
+				current = current->prev;
+			}
+
+			/* Before changing the head, check for the cases like
+			   empty list and list with only one node */
+			if (temp != NULL)
+				first = temp->prev;
 		}
 		void addCustomerQueue(customer *Customer)
 		{
@@ -431,12 +455,7 @@ public:
 			deleteAllCustomer();
 			return;
 		}
-
 		int count = 0;
-		// cout << "\n";
-		// customerOrder->printQueue();
-		// cout << "\n";
-
 		while (count != num)
 		{
 			customer *customerDelete = customerOrder->getCustomerFromQueue(count);
@@ -480,7 +499,67 @@ public:
 	}
 	void REVERSAL()
 	{
-		// cout << "reversal" << endl;
+		// customerQueue->printQueue();
+		// cout << endl;
+		Queue *negativeQueue = new Queue();
+		Queue *positiveQueue = new Queue();
+		string currNameUnique = currentChange->name;
+
+		customer *firstCustomer = head;
+		int count = 0;
+		while (count != occupied)
+		{
+
+			if (firstCustomer->energy > 0)
+			{
+				positiveQueue->addCustomerInOrder(firstCustomer->name, firstCustomer->energy);
+			}
+			else if (firstCustomer->energy < 0)
+			{
+				negativeQueue->addCustomerInOrder(firstCustomer->name, firstCustomer->energy);
+			}
+			firstCustomer = firstCustomer->next;
+			count++;
+		}
+
+		negativeQueue->reverse();
+		positiveQueue->reverse();
+
+		customer *tmpQueueMain = head->next;
+		customer *tmpFirstNeg = negativeQueue->getFirst();
+		customer *tmpFirstPos = positiveQueue->getFirst();
+
+		while (tmpQueueMain != head)
+		{
+			if (tmpQueueMain->energy < 0)
+			{
+				tmpQueueMain->energy = tmpFirstNeg->energy;
+				tmpQueueMain->name = tmpFirstNeg->name;
+				tmpFirstNeg = tmpFirstNeg->next;
+			}
+			else if (tmpQueueMain->energy > 0)
+			{
+				tmpQueueMain->energy = tmpFirstPos->energy;
+				tmpQueueMain->name = tmpFirstPos->name;
+				tmpFirstPos = tmpFirstPos->next;
+			}
+			tmpQueueMain = tmpQueueMain->next;
+		}
+		count = 0;
+		customer *tmpQueueMain2 = head;
+		while (count != occupied)
+		{
+			if (tmpQueueMain2->name == currNameUnique)
+			{
+				currentChange = tmpQueueMain2;
+				return;
+			}
+
+			tmpQueueMain2 = tmpQueueMain2->next;
+			count++;
+		}
+
+		// delete tmpFirstNeg;
 	}
 	void UNLIMITED_VOID()
 	{
@@ -490,12 +569,14 @@ public:
 	{
 		// cout << "domain_expansion" << endl;
 	}
+
 	void LIGHT(int num)
 	{
 		cout << "\n"
 			 << "-----------------------all customer at restaurant ---------------------"
 			 << "\n"
 			 << endl;
+		cout << "CurrentChange->name: " << currentChange->name << endl;
 		if (occupied == 0)
 		{
 			return;
@@ -632,8 +713,8 @@ public:
 			// free(current);
 			current = temp;
 		}
-		// customerQueue->deleteQueue();
-		// customerOrder->deleteQueue();
+		customerQueue->deleteQueue();
+		customerOrder->deleteQueue();
 
 		head = NULL;
 		currentChange = NULL;
