@@ -205,6 +205,7 @@ public:
 					last = newNode;
 				}
 			}
+			increaseFilled();
 		}
 		void addCustomerQueue(customer *Customer)
 		{
@@ -304,7 +305,7 @@ public:
 						{
 							if (currentChange->energy <= energy)
 							{
-								cout << "add right" << endl;
+								cout << "add right-2" << endl;
 								customer *newCustomer = new customer(name, energy, currentChange, head);
 								currentChange->next = newCustomer;
 								head->prev = newCustomer;
@@ -313,7 +314,7 @@ public:
 							}
 							else if (currentChange->energy > energy)
 							{
-								cout << "add left" << endl;
+								cout << "add left-2" << endl;
 								customer *newCustomer = new customer(name, energy, head, currentChange);
 								head->next = newCustomer;
 								currentChange->prev = newCustomer;
@@ -352,8 +353,6 @@ public:
 				}
 				else if (occupied == MAXSIZE)
 				{
-					cout << "occupied size: " << occupied << " max size: " << MAXSIZE << " filled: " << customerQueue->getFilled() << "\n"
-						 << endl;
 					if (customerQueue->getFilled() == MAXSIZE)
 					{
 						cout << "............." << endl;
@@ -378,8 +377,8 @@ public:
 	}
 	void BLUE(int num)
 	{
-		// cout << "occupied: " << occupied << " "
-		// 	 << "num:" << num << endl;
+		cout << "occupied: " << occupied << " "
+			 << "num:" << num << endl;
 		if (num >= occupied || num >= MAXSIZE)
 		{
 			deleteAllCustomer();
@@ -387,17 +386,33 @@ public:
 		}
 
 		int count = 0;
+		cout << "\n";
+		customerOrder->printQueue();
+		cout << "\n";
+
 		while (count != num)
 		{
 			customer *customerDelete = customerOrder->getCustomerFromQueue(count);
 
 			cout << "delete customer " << customerDelete->name << endl;
-			// cout << "currentChange: " << currentChange->name << endl;
 
 			findAndDeleteCustomer(customerDelete->name);
-			customerOrder->removeCustomerInOrder(count);
 			count++;
 		}
+		count = 0;
+
+		cout << "check next currentChange: " << currentChange->name << endl;
+		while (count != num)
+		{
+			customer *takeCustomerInQueue = customerQueue->getCustomerFromQueue(count);
+			RED(takeCustomerInQueue->name, takeCustomerInQueue->energy);
+			count++;
+		}
+
+		customerOrder->removeCustomerInOrder(num);
+		cout << "\n";
+		customerQueue->printQueue();
+		cout << "\n";
 	}
 	void PURPLE()
 	{
@@ -440,7 +455,7 @@ public:
 		if (num > 0)
 		{
 			// if it doesn't back to head -> check this
-			customer *temp = head;
+			customer *temp = currentChange;
 			int count = occupied;
 			while (count != 0)
 			{
@@ -469,17 +484,18 @@ public:
 		int output = 0;
 		while (count != 0)
 		{
-			int result = abs(tmp->energy - energy);
+			int result = abs(energy - tmp->energy);
 
 			if (result > maxRes)
 			{
 				maxRes = result;
-				output = tmp->energy - energy;
+				output = energy - tmp->energy;
 				currentChange = tmp;
 			}
 			tmp = tmp->next;
 			count--;
 		}
+
 		return output;
 	}
 
@@ -584,9 +600,10 @@ public:
 		{
 			tmp = tmp->next;
 		}
-		cout << "check tmp->prev->name at delete: " << tmp->next->name << endl;
+
 		customer *prevTemp = tmp->prev;
 		customer *nextTemp = tmp->next;
+		cout << "delete node->next: " << nextTemp->name << endl;
 
 		prevTemp->next = nextTemp;
 		nextTemp->prev = prevTemp;
@@ -594,14 +611,15 @@ public:
 		{
 			head = nextTemp;
 		}
-		// if (tmp->energy > 0)
-		// {
-		// 	currentChange = nextTemp;
-		// }
-		// else if (tmp->energy < 0)
-		// {
-		// 	currentChange = prevTemp;
-		// }
+		if (tmp->energy > 0)
+		{
+			currentChange = nextTemp;
+		}
+		else if (tmp->energy < 0)
+		{
+			currentChange = prevTemp;
+		}
+
 		tmp = nullptr;
 		occupied--;
 		return;
