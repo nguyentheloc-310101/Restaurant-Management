@@ -1,1 +1,2 @@
-PURPLE
+
+			ss >> energy

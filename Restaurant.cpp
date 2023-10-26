@@ -110,21 +110,14 @@ public:
 				return static_cast<int>(num + 0.5);
 			}
 		}
-		Queue *sortQueue(int maxsize)
+		customer *getMaxPosPurple()
 		{
 			customer *travel = first;
 			customer *positionOfMax = first;
-			Queue *queueBeforeMax = new Queue(maxsize);
-			Queue *queueAfterMax = new Queue(maxsize);
-
-			Queue *output = new Queue(maxsize);
 
 			int countStop = 0;
 			int max = abs(travel->energy);
-			// cout << "filled: " << filled << endl;
 			int flag = 0;
-
-			// get the max position
 			while (countStop != filled)
 			{
 				int tmp = abs(travel->energy);
@@ -136,41 +129,7 @@ public:
 				travel = travel->next;
 				countStop++;
 			}
-
-			customer *tmp = positionOfMax;
-			customer *tmpAfter = positionOfMax->next;
-
-			while (tmp != NULL)
-			{
-				queueBeforeMax->addCustomerInOrder(tmp->name, tmp->energy);
-				tmp = tmp->prev;
-			}
-			while (tmpAfter != NULL)
-			{
-				queueAfterMax->addCustomerInOrder(tmpAfter->name, tmpAfter->energy);
-				tmpAfter = tmpAfter->next;
-			}
-			queueBeforeMax->reverse();
-
-			// delete tmp;
-			// delete tmpAfter;
-			// delete travel;
-			// delete positionOfMax;
-
-			customer *travelAddFront = queueBeforeMax->getFirst();
-			customer *travelAddAfter = queueAfterMax->getFirst();
-			while (travelAddFront != NULL)
-			{
-				output->addCustomerInOrder(travelAddFront->name, travelAddFront->energy);
-				travelAddFront = travelAddFront->next;
-			}
-			while (travelAddAfter != NULL)
-			{
-				output->addCustomerInOrder(travelAddAfter->name, travelAddAfter->energy);
-				travelAddAfter = travelAddAfter->next;
-			}
-
-			return output;
+			return positionOfMax;
 		}
 		int nextGap(double gap)
 		{
@@ -287,7 +246,7 @@ public:
 		void getCustomerInQueue();
 		void checkSizeQueue();
 		void searchCustomerInQueue(string);
-		void deleteNode(string name)
+		void deleteCustomerInQueue(string name)
 		{
 			customer *current = first;
 			while (current != nullptr)
@@ -338,21 +297,40 @@ public:
 		}
 		void reverse()
 		{
-			customer *temp = NULL;
-			customer *current = first;
-
-			/* swap next and prev for all nodes of
-			doubly linked list */
-			while (current != NULL)
+			if (filled % 2 == 0)
 			{
-				temp = current->prev;
-				current->prev = current->next;
-				current->next = temp;
-				current = current->prev;
+				int count = filled / 2;
+				customer *startFirst = first;
+				customer *startLast = last;
+				while (count != 0)
+				{
+					swapNodes(startFirst, startFirst);
+					startFirst = startFirst->next;
+					startLast = startLast->prev;
+					count--;
+				}
 			}
-
-			if (temp != NULL)
-				first = temp->prev;
+			else
+			{
+				int posMiddle = 0;
+				int cnt = filled / 2;
+				customer *middle = first;
+				while (cnt != 0)
+				{
+					middle = middle->next;
+				}
+				middle = middle->next;
+				customer *pointStart = middle;
+				customer *node1 = middle->prev;
+				customer *node2 = middle->next;
+				while (cnt != 0)
+				{
+					swapNodes(node1, node2);
+					node1 = node1->prev;
+					node2 = node2->next;
+					cnt--;
+				}
+			}
 		}
 		void addCustomerQueue(customer *Customer)
 		{
@@ -392,10 +370,92 @@ public:
 				count--;
 			}
 		}
-	};
 
-private:
-	int size = 0;
+		void swapNodes(customer *node1, customer *node2)
+		{
+			if (node1 == nullptr || node2 == nullptr || node1 == node2)
+			{
+				return;
+			}
+
+			if (node1->next == node2 || node2->next == node1)
+			{
+				if (node1->next == node2)
+				{
+					if (node1->prev != nullptr)
+					{
+						node1->prev->next = node2;
+					}
+					if (node2->next != nullptr)
+					{
+						node2->next->prev = node1;
+					}
+					node1->next = node2->next;
+					node2->prev = node1->prev;
+					node1->prev = node2;
+					node2->next = node1;
+				}
+				else
+				{
+					if (node2->prev != nullptr)
+					{
+						node2->prev->next = node1;
+					}
+					if (node1->next != nullptr)
+					{
+						node1->next->prev = node2;
+					}
+					node2->next = node1->next;
+					node1->prev = node2->prev;
+					node2->prev = node1;
+					node1->next = node2;
+				}
+			}
+			else
+			{
+				if (node1->prev != nullptr)
+				{
+					node1->prev->next = node2;
+				}
+				if (node1->next != nullptr)
+				{
+					node1->next->prev = node2;
+				}
+				if (node2->prev != nullptr)
+				{
+					node2->prev->next = node1;
+				}
+				if (node2->next != nullptr)
+				{
+					node2->next->prev = node1;
+				}
+
+				customer *tempNext = node1->next;
+				customer *tempPrev = node1->prev;
+				node1->next = node2->next;
+				node1->prev = node2->prev;
+				node2->next = tempNext;
+				node2->prev = tempPrev;
+			}
+
+			if (node1 == first)
+			{
+				first = node2;
+			}
+			else if (node2 == first)
+			{
+				first = node1;
+			}
+			if (node1 == last)
+			{
+				last = node2;
+			}
+			else if (node2 == last)
+			{
+				last = node1;
+			}
+		}
+	};
 
 public:
 	customer *currentChange;
@@ -552,7 +612,7 @@ public:
 			{
 				customer *customerDelete = customerOrder->first;
 				findAndDeleteCustomer(customerDelete->name);
-				customerOrder->deleteNode(customerDelete->name);
+				customerOrder->deleteCustomerInQueue(customerDelete->name);
 				count++;
 			}
 			count = 0;
@@ -564,7 +624,7 @@ public:
 				{
 					customer *takeCustomerInQueue = customerQueue->first;
 					RED(takeCustomerInQueue->name, takeCustomerInQueue->energy);
-					customerQueue->deleteNode(takeCustomerInQueue->name);
+					customerQueue->deleteCustomerInQueue(takeCustomerInQueue->name);
 					count++;
 				}
 			}
@@ -573,8 +633,31 @@ public:
 	void PURPLE()
 	{
 		int countSwap = 0;
-		Queue *newQ = customerQueue->sortQueue(MAXSIZE);
-		customerQueue = newQ;
+		if (customerQueue->getFilled() < 2)
+		{
+			BLUE(countSwap % MAXSIZE);
+			return;
+		}
+		customer *fQueue = customerQueue->getFirst();
+		customer *maxPosition = customerQueue->getMaxPosPurple();
+		customer *curr = fQueue->next;
+		while (curr != nullptr)
+		{
+			if (abs(curr->energy) >= abs(maxPosition->energy))
+			{
+				maxPosition = curr;
+			}
+			curr = curr->next;
+		}
+		if (maxPosition == fQueue)
+		{
+			BLUE(countSwap % MAXSIZE);
+			return;
+		}
+
+		curr = maxPosition->next;
+		sortQueue(maxPosition, countSwap);
+		BLUE(countSwap % MAXSIZE);
 	}
 	void REVERSAL()
 	{
@@ -586,6 +669,7 @@ public:
 		Queue *positiveQueue = new Queue();
 
 		string currNameUnique = currentChange->name;
+
 		customer *firstCustomer = head;
 		int count = 0;
 
@@ -603,121 +687,122 @@ public:
 			firstCustomer = firstCustomer->next;
 			count++;
 		}
-		// cout << "\n";
-		// cout << "NEGATIVE not reverse" << endl;
-		// positiveQueue->printQueue();
-		// cout << "\n";
+		cout << "\n";
+		cout << "NEGATIVE not reverse" << endl;
+		positiveQueue->printQueue();
+		cout << "\n";
 
-		// cout << "\n";
-		// cout << "POSITIVE not reverse" << endl;
-		// negativeQueue->printQueue();
-		// cout << "\n";
+		cout << "\n";
+		cout << "POSITIVE not reverse" << endl;
+		negativeQueue->printQueue();
+		cout << "\n";
 
 		negativeQueue->reverse();
 		positiveQueue->reverse();
 
-		customer *tmpQueueMain = head->next;
-		customer *tmpFirstNeg = negativeQueue->getFirst();
-		customer *tmpFirstPos = positiveQueue->getFirst();
+		// customer *tmpQueueMain = head->prev;
+		// customer *tmpFirstNeg = negativeQueue->getFirst();
+		// customer *tmpFirstPos = positiveQueue->getFirst();
 
-		while (tmpQueueMain != head)
-		{
-			if (tmpQueueMain->energy < 0)
-			{
-				tmpQueueMain->energy = tmpFirstNeg->energy;
-				tmpQueueMain->name = tmpFirstNeg->name;
-				tmpFirstNeg = tmpFirstNeg->next;
-			}
-			else if (tmpQueueMain->energy > 0)
-			{
-				tmpQueueMain->energy = tmpFirstPos->energy;
-				tmpQueueMain->name = tmpFirstPos->name;
-				tmpFirstPos = tmpFirstPos->next;
-			}
-			tmpQueueMain = tmpQueueMain->next;
-		}
-		count = 0;
-		customer *tmpQueueMain2 = head;
-		while (count != occupied)
-		{
-			if (tmpQueueMain2->name == currNameUnique)
-			{
-				currentChange = tmpQueueMain2;
-				break;
-			}
+		// while (tmpQueueMain != head)
+		// {
+		// 	if (tmpQueueMain->energy < 0)
+		// 	{
+		// 		tmpQueueMain->energy = tmpFirstNeg->energy;
+		// 		tmpQueueMain->name = tmpFirstNeg->name;
+		// 		tmpFirstNeg = tmpFirstNeg->next;
+		// 	}
+		// 	else if (tmpQueueMain->energy > 0)
+		// 	{
+		// 		tmpQueueMain->energy = tmpFirstPos->energy;
+		// 		tmpQueueMain->name = tmpFirstPos->name;
+		// 		tmpFirstPos = tmpFirstPos->next;
+		// 	}
+		// 	tmpQueueMain = tmpQueueMain->prev;
+		// }
+		// count = 0;
+		// customer *tmpQueueMain2 = head;
+		// while (count != occupied)
+		// {
+		// 	if (tmpQueueMain2->name == currNameUnique)
+		// 	{
+		// 		currentChange = tmpQueueMain2;
+		// 		break;
+		// 	}
 
-			tmpQueueMain2 = tmpQueueMain2->next;
-			count++;
-		}
+		// 	tmpQueueMain2 = tmpQueueMain2->next;
+		// 	count++;
+		// }
 
 		// delete tmpFirstNeg;
 	}
 	void UNLIMITED_VOID()
 	{
-		// cout << "unlimited_void" << endl;
-		if (size < 4)
+		if (occupied < 4)
 		{
 			return;
 		}
 
-		customer *bestStart = nullptr;
-		customer *bestEnd = nullptr;
+		customer *start = NULL;
+		customer *end = NULL;
 
-		customer *temp = currentChange;
-		customer *temp1 = temp;
+		customer *tmpCurr = currentChange;
+		customer *travel = tmpCurr;
 
 		int sum = 0;
-		int sumMin = 9999999;
-		int flag = 0;
+		int notationCount = 0;
+
+		int minSum = 10000000;
 
 		int j = 0;
 		int i = 4;
-		while (i < size)
+		while (i < occupied)
 		{
-			temp = currentChange;
-			temp1 = temp;
-			while (temp->next != currentChange)
+			tmpCurr = currentChange;
+			travel = tmpCurr;
+			while (tmpCurr->next != currentChange)
 			{
 				j = 0;
-				temp1 = temp;
+				travel = tmpCurr;
 				sum = 0;
-				while (temp1->next != currentChange && j < i)
+				while (travel->next != currentChange && j < i)
 				{
 
-					sum += temp1->energy;
-					temp1 = temp1->next;
+					sum += travel->energy;
+					travel = travel->next;
 					j++;
-					if (temp1->next == currentChange && j < i - 1)
+					if (travel->next == currentChange && j < i - 1)
 					{
-						flag = 1;
+						notationCount = 1;
 					}
 				}
 
-				if (flag == 0 && sum < sumMin)
+				if (notationCount == 0 && sum < minSum)
 				{
-					sumMin = sum;
-					bestStart = temp;
-					bestEnd = temp1->prev;
+					minSum = sum;
+					start = tmpCurr;
+					end = travel->prev;
 				}
 
-				flag = 0;
-				temp = temp->next;
+				notationCount = 0;
+				tmpCurr = tmpCurr->next;
 			}
 			i++;
 		}
-		if (bestStart)
+		if (start)
 		{
-			cout << bestEnd->energy << endl;
-			while (bestStart != bestEnd)
+			cout << end->energy << endl;
+			while (start != end)
 			{
-				bestStart->print();
-				bestStart = bestStart->next;
+				start->print();
+				start = start->next;
 			}
-			bestEnd->print();
+			end->print();
 		}
 	}
 	void DOMAIN_EXPANSION()
 	{
+		cout << "DOMAIN_EXPANSION" << endl;
 		customer *tmp = head;
 		int count = 0;
 		int sumPos = 0;
@@ -752,12 +837,11 @@ public:
 			}
 
 			customer *firstTemp = customerQueue->getFirst();
-
 			while (firstTemp != NULL)
 			{
 				if (firstTemp->energy < 0)
 				{
-					customerQueue->deleteNode(firstTemp->name);
+					customerQueue->deleteCustomerInQueue(firstTemp->name);
 				}
 				firstTemp = firstTemp->next;
 			}
@@ -780,7 +864,7 @@ public:
 			{
 				if (firstTemp->energy > 0)
 				{
-					customerQueue->deleteNode(firstTemp->name);
+					customerQueue->deleteCustomerInQueue(firstTemp->name);
 				}
 				firstTemp = firstTemp->next;
 			}
@@ -793,11 +877,17 @@ public:
 			testSizeQueue++;
 			sizeQ = sizeQ->next;
 		}
+		// cout << "\n";
+		// cout << "***********************************************************************" << endl;
+		// cout << "***********************************************************************" << endl;
+		// cout << "Priority:" << endl;
+		// customerOrder->printQueue();
+		// cout << "***********************************************************************" << endl;
+		// cout << "***********************************************************************" << endl;
+		// cout << "\n";
 		if (occupied < MAXSIZE && testSizeQueue > 0)
 		{
-
 			int nCount = MAXSIZE - occupied;
-
 			while (nCount != 0)
 			{
 				customer *takeCustomer = customerQueue->getFirst();
@@ -806,35 +896,35 @@ public:
 				if (takeCustomer != NULL)
 				{
 					RED(takeCustomer->name, takeCustomer->energy);
-					customerQueue->deleteNode(takeCustomer->name);
+					customerQueue->deleteCustomerInQueue(takeCustomer->name);
 				}
 				nCount--;
 			}
-			if (sumPos >= sumNeg)
+		}
+		if (sumPos >= sumNeg)
+		{
+			customer *firstTemp2 = customerOrder->getLast();
+			while (firstTemp2 != NULL)
 			{
-				customer *firstTemp2 = customerOrder->getFirst();
-				while (firstTemp2 != NULL)
+				if (firstTemp2->energy < 0)
 				{
-					if (firstTemp2->energy < 0)
-					{
-						firstTemp2->print();
-						customerOrder->deleteNode(firstTemp2->name);
-					}
-					firstTemp2 = firstTemp2->next;
+					firstTemp2->print();
+					customerOrder->deleteCustomerInQueue(firstTemp2->name);
 				}
+				firstTemp2 = firstTemp2->prev;
 			}
-			else if (sumPos < sumNeg)
+		}
+		else if (sumPos < sumNeg)
+		{
+			customer *firstTemp2 = customerOrder->getLast();
+			while (firstTemp2 != NULL)
 			{
-				customer *firstTemp2 = customerOrder->getFirst();
-				while (firstTemp2 != NULL)
+				if (firstTemp2->energy > 0)
 				{
-					if (firstTemp2->energy > 0)
-					{
-						firstTemp2->print();
-						customerOrder->deleteNode(firstTemp2->name);
-					}
-					firstTemp2 = firstTemp2->next;
+					firstTemp2->print();
+					customerOrder->deleteCustomerInQueue(firstTemp2->name);
 				}
+				firstTemp2 = firstTemp2->prev;
 			}
 		}
 	}
@@ -858,11 +948,11 @@ public:
 		}
 		else if (num == 0)
 		{
-			cout << "\n";
-			cout << "PRIORITY:" << endl;
-			customerOrder->printQueue();
-			cout << "\n";
-			cout << "Waiting:" << endl;
+			// cout << "\n";
+			// cout << "PRIORITY:" << endl;
+			// customerOrder->printQueue();
+			// cout << "\n";
+			// cout << "Waiting:" << endl;
 			customerQueue->printQueue();
 		}
 		else if (num < 0)
@@ -1005,9 +1095,10 @@ public:
 
 		occupied--;
 	}
-	void shellSort(customer *start, int &change)
+	void sortQueue(customer *maxPosition, int &countSwap)
 	{
-		customer *ptr = start;
+		customer *ptr = maxPosition;
+		bool notation = false;
 		int NoOfElements = 0;
 		while (ptr != nullptr)
 		{
@@ -1015,31 +1106,30 @@ public:
 			ptr = ptr->prev;
 		}
 
-		bool flag = false;
-		for (int gap = NoOfElements / 2; gap > 0; gap /= 2)
+		for (int gap = NoOfElements / 2; gap > 0; gap = gap / 2)
 		{
 			for (int i = gap; i < NoOfElements; i++)
 			{
 				for (int j = i; j >= gap; j -= gap)
 				{
-					customer *customerAtJ = getCustomerAt(j);
-					customer *gapJ = getCustomerAt(j - gap);
-					if (abs(customerAtJ->energy) > abs(gapJ->energy))
+					customer *customerAtJ = getCustomerAtPosition(j);
+					customer *gapSpaceJ = getCustomerAtPosition(j - gap);
+					if (abs(customerAtJ->energy) > abs(gapSpaceJ->energy))
 					{
-						flag = true;
+						notation = true;
 						string tempName = customerAtJ->name;
 						int tempEnergy = customerAtJ->energy;
-						customerAtJ->name = gapJ->name;
-						customerAtJ->energy = gapJ->energy;
-						gapJ->name = tempName;
-						gapJ->energy = tempEnergy;
+						customerAtJ->name = gapSpaceJ->name;
+						customerAtJ->energy = gapSpaceJ->energy;
+						gapSpaceJ->name = tempName;
+						gapSpaceJ->energy = tempEnergy;
 					}
-					else if (abs(customerAtJ->energy) == abs(gapJ->energy))
+					else if (abs(customerAtJ->energy) == abs(gapSpaceJ->energy))
 					{
 						customer *ptr = customerOrder->getFirst();
 						while (ptr != nullptr)
 						{
-							if (ptr->name == customerAtJ->name || ptr->name == gapJ->name)
+							if (ptr->name == customerAtJ->name || ptr->name == gapSpaceJ->name)
 							{
 								break;
 							}
@@ -1047,27 +1137,26 @@ public:
 						}
 						if (ptr->name == customerAtJ->name)
 						{
-							flag = true;
+							notation = true;
 							string tempName = customerAtJ->name;
 							int tempEnergy = customerAtJ->energy;
-							customerAtJ->name = gapJ->name;
-							customerAtJ->energy = gapJ->energy;
-							gapJ->name = tempName;
-							gapJ->energy = tempEnergy;
+							customerAtJ->name = gapSpaceJ->name;
+							customerAtJ->energy = gapSpaceJ->energy;
+							gapSpaceJ->name = tempName;
+							gapSpaceJ->energy = tempEnergy;
 						}
 					}
 				}
-				if (flag == true)
+				if (notation == true)
 				{
-					change++;
-					flag = false;
+					countSwap++;
+					notation = false;
 				}
 			}
 		}
 	}
 
-	// get customer at index in queue
-	customer *getCustomerAt(int index)
+	customer *getCustomerAtPosition(int index)
 	{
 		int count = 0;
 		customer *ptr = customerQueue->getFirst();
