@@ -297,40 +297,25 @@ public:
 		}
 		void reverse()
 		{
-			if (filled % 2 == 0)
+			if (first == NULL)
 			{
-				int count = filled / 2;
-				customer *startFirst = first;
-				customer *startLast = last;
-				while (count != 0)
-				{
-					swapNodes(startFirst, startFirst);
-					startFirst = startFirst->next;
-					startLast = startLast->prev;
-					count--;
-				}
+				return;
 			}
-			else
+			// cout << first->next->name << " " << first->next->energy << " " << endl;
+			customer *prevCustomer = first;
+			customer *tmp = first;
+			customer *curr = first->next;
+			prevCustomer->next = NULL;
+			prevCustomer->prev = NULL;
+			while (curr != NULL)
 			{
-				int posMiddle = 0;
-				int cnt = filled / 2;
-				customer *middle = first;
-				while (cnt != 0)
-				{
-					middle = middle->next;
-				}
-				middle = middle->next;
-				customer *pointStart = middle;
-				customer *node1 = middle->prev;
-				customer *node2 = middle->next;
-				while (cnt != 0)
-				{
-					swapNodes(node1, node2);
-					node1 = node1->prev;
-					node2 = node2->next;
-					cnt--;
-				}
+				tmp = curr->next;
+				curr->next = prevCustomer;
+				prevCustomer->prev = curr;
+				prevCustomer = curr;
+				curr = tmp;
 			}
+			first = prevCustomer;
 		}
 		void addCustomerQueue(customer *Customer)
 		{
@@ -684,7 +669,7 @@ public:
 			{
 				negativeQueue->addCustomerInOrder(firstCustomer->name, firstCustomer->energy);
 			}
-			firstCustomer = firstCustomer->next;
+			firstCustomer = firstCustomer->prev;
 			count++;
 		}
 		cout << "\n";
@@ -700,39 +685,50 @@ public:
 		negativeQueue->reverse();
 		positiveQueue->reverse();
 
-		// customer *tmpQueueMain = head->prev;
-		// customer *tmpFirstNeg = negativeQueue->getFirst();
-		// customer *tmpFirstPos = positiveQueue->getFirst();
+		cout << "\n";
+		cout << "NEGATIVE After reverse" << endl;
+		positiveQueue->printQueue();
+		cout << "\n";
 
-		// while (tmpQueueMain != head)
-		// {
-		// 	if (tmpQueueMain->energy < 0)
-		// 	{
-		// 		tmpQueueMain->energy = tmpFirstNeg->energy;
-		// 		tmpQueueMain->name = tmpFirstNeg->name;
-		// 		tmpFirstNeg = tmpFirstNeg->next;
-		// 	}
-		// 	else if (tmpQueueMain->energy > 0)
-		// 	{
-		// 		tmpQueueMain->energy = tmpFirstPos->energy;
-		// 		tmpQueueMain->name = tmpFirstPos->name;
-		// 		tmpFirstPos = tmpFirstPos->next;
-		// 	}
-		// 	tmpQueueMain = tmpQueueMain->prev;
-		// }
-		// count = 0;
-		// customer *tmpQueueMain2 = head;
-		// while (count != occupied)
-		// {
-		// 	if (tmpQueueMain2->name == currNameUnique)
-		// 	{
-		// 		currentChange = tmpQueueMain2;
-		// 		break;
-		// 	}
+		cout << "\n";
+		cout << "POSITIVE After reverse" << endl;
+		negativeQueue->printQueue();
+		cout << "\n";
 
-		// 	tmpQueueMain2 = tmpQueueMain2->next;
-		// 	count++;
-		// }
+		customer *tmpQueueMain = head;
+		customer *tmpFirstNeg = negativeQueue->getFirst();
+		customer *tmpFirstPos = positiveQueue->getFirst();
+		int countSizeTmp = occupied;
+		while (countSizeTmp != 0)
+		{
+			if (tmpQueueMain->energy < 0)
+			{
+				tmpQueueMain->energy = tmpFirstNeg->energy;
+				tmpQueueMain->name = tmpFirstNeg->name;
+				tmpFirstNeg = tmpFirstNeg->next;
+			}
+			else if (tmpQueueMain->energy > 0)
+			{
+				tmpQueueMain->energy = tmpFirstPos->energy;
+				tmpQueueMain->name = tmpFirstPos->name;
+				tmpFirstPos = tmpFirstPos->next;
+			}
+			tmpQueueMain = tmpQueueMain->prev;
+			countSizeTmp--;
+		}
+		count = 0;
+		customer *tmpQueueMain2 = head;
+		while (count != occupied)
+		{
+			if (tmpQueueMain2->name == currNameUnique)
+			{
+				currentChange = tmpQueueMain2;
+				break;
+			}
+
+			tmpQueueMain2 = tmpQueueMain2->next;
+			count++;
+		}
 
 		// delete tmpFirstNeg;
 	}
